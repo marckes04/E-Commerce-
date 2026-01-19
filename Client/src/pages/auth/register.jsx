@@ -1,8 +1,10 @@
 import CommonForm from "@/components/common/form";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { Link, useNavigate } from "react-router-dom"; // <--- ADDED useNavigate
+import { registerUser } from "@/store/auth-slice"; // <--- ADDED registerUser Import
 
-// 1. DEFINIMOS LOS CAMPOS DEL FORMULARIO (ESTO FALTABA)
+// 1. FORM FIELDS
 const registerFormControls = [
   {
     name: "userName",
@@ -35,10 +37,23 @@ const initialState = {
 
 function AuthRegister() {
   const [formData, setFormData] = useState(initialState);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-  // 2. FUNCIÓN PARA MANEJAR EL ENVÍO
+  // 2. HANDLE SUBMIT
   function onSubmit(event) {
-    
+    event.preventDefault();
+    dispatch(registerUser(formData)).then((data) => {
+        // Optional: Check if registration was successful before redirecting
+        if(data?.payload?.success){
+             navigate('/auth/login');
+        } else {
+            // For now, let's just log the result
+            console.log("Registration attempt:", data);
+            // You might want to redirect anyway for testing:
+            // navigate('/auth/login'); 
+        }
+    });
   }
 
   return (
@@ -48,7 +63,7 @@ function AuthRegister() {
           Create a new account
         </h1>
         <p className="mt-2 text-sm text-gray-600">
-         Already have an account?
+          Already have an account?
           <Link
             className="font-medium ml-2 text-primary hover:underline"
             to="/auth/login"
@@ -58,7 +73,6 @@ function AuthRegister() {
         </p>
       </div>
 
-      {/* 3. PASAMOS LAS PROPS NECESARIAS AL COMPONENTE */}
       <CommonForm
         formControls={registerFormControls}
         buttonText={"Sign Up"}
