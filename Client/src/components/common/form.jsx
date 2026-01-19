@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { Textarea } from "../ui/textarea"; // Agregué Textarea por si lo usas
+import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
 
 function CommonForm({
@@ -43,7 +43,6 @@ function CommonForm({
 
       case "select":
         element = (
-          /* Aquí corregí la estructura: Usamos el componente Select de Shadcn, no <select> html */
           <Select
             onValueChange={(value) =>
               setFormData({
@@ -118,7 +117,6 @@ function CommonForm({
           </div>
         ))}
       </div>
-      {/* Botón de envío que faltaba */}
       <Button disabled={isBtnDisabled} type="submit" className="mt-2 w-full">
         {buttonText || "Submit"}
       </Button>
