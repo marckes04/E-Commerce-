@@ -6,27 +6,9 @@ import { registerUser } from "@/store/auth-slice";
 import { toast } from "sonner"; 
 
 const registerFormControls = [
-  {
-    name: "userName",
-    label: "User Name",
-    placeholder: "Enter your user name",
-    componentType: "input",
-    type: "text",
-  },
-  {
-    name: "email",
-    label: "Email",
-    placeholder: "Enter your email",
-    componentType: "input",
-    type: "email",
-  },
-  {
-    name: "password",
-    label: "Password",
-    placeholder: "Enter your password",
-    componentType: "input",
-    type: "password",
-  },
+  { name: "userName", label: "User Name", placeholder: "Enter your user name", componentType: "input", type: "text" },
+  { name: "email", label: "Email", placeholder: "Enter your email", componentType: "input", type: "email" },
+  { name: "password", label: "Password", placeholder: "Enter your password", componentType: "input", type: "password" },
 ];
 
 const initialState = {
@@ -43,20 +25,19 @@ function AuthRegister() {
   function onSubmit(event) {
     event.preventDefault();
 
-    // 1. Dispatch the action
     dispatch(registerUser(formData)).then((data) => {
-      // Logic to check the response from your Backend/Slice
+      // data.payload contiene la respuesta JSON de tu backend
       if (data?.payload?.success) {
-        // Success Message
-        toast.success(data?.payload?.message || "Registration Successful!");
+        // Muestra mensaje verde de éxito
+        toast.success(data?.payload?.message);
 
-        // 2. Redirect with a 1.5s delay so the user sees the toast
+        // Esperamos un segundo para que el usuario lea el mensaje antes de moverlo
         setTimeout(() => {
           navigate("/auth/login");
         }, 1500);
       } else {
-        // Error Message (e.g., "Email already exists")
-        toast.error(data?.payload?.message || "Registration Failed. Please try again.");
+        // Muestra mensaje rojo con el error del backend (ej: "User already exists")
+        toast.error(data?.payload?.message || "Registration failed");
       }
     });
   }
@@ -69,10 +50,7 @@ function AuthRegister() {
         </h1>
         <p className="mt-2 text-muted-foreground">
           Already have an account?
-          <Link
-            className="font-medium ml-2 text-primary hover:underline"
-            to="/auth/login"
-          >
+          <Link className="font-medium ml-2 text-primary hover:underline" to="/auth/login">
             Login
           </Link>
         </p>
