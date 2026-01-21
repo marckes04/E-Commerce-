@@ -2,13 +2,16 @@ import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
 import './index.css'
 import { BrowserRouter } from 'react-router-dom'
-import { Provider } from 'react-redux' // <--- 1. Import Provider
-import store from './store/store.js'   // <--- 2. Import your Store
+import { Provider } from 'react-redux'
+import store from './store/store.js'
+// ✅ CORRECT:
+import { Toaster } from "@/components/ui/sonner" 
 
 createRoot(document.getElementById('root')).render(
   <BrowserRouter>
-    <Provider store={store}> {/* <--- 3. WRAP THE APP HERE */}
+    <Provider store={store}>
       <App />
+      <Toaster />
     </Provider>
   </BrowserRouter>
 )
