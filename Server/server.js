@@ -4,31 +4,44 @@ const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const authRouter = require("./routes/auth/auth-routes");
-const { registerUser } = require("./controllers/auth/Auth-controller");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Conexión estándar (ahora funcionará porque el enlace es perfecto)
-mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log("✅ ¡CONECTADO A LA BASE DE DATOS!"))
-    .catch(err => {
-        console.log("❌ Error de conexión:", err.message);
-    });
+// 1. VERIFICACIÓN Y CONEXIÓN A MONGOOSE
+// Asegúrate de que en tu archivo .env tengas: MONGO_URI=mongodb://...
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => console.log("✅ Conectado a MongoDB con éxito"))
+  .catch((err) => {
+    console.error("❌ Error crítico: No se pudo conectar a MongoDB:", err.message);
+    process.exit(1); // Detiene el servidor si la DB no conecta
+  });
 
-app.use(cors({
+// 2. MIDDLEWARES
+app.use(
+  cors({
     origin: "http://localhost:5173",
     methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization", "cache-control", "Expires", "Pragma"],
-    credentials: true
-}));
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "cache-control",
+      "Expires",
+      "Pragma",
+    ],
+    credentials: true,
+  })
+);
 
 app.use(cookieParser());
 app.use(express.json());
-app.use('/api/auth', authRouter);
 
+// 3. RUTAS
+// Ahora http://localhost:5000/api/auth/login funcionará perfectamente
+app.use("/api/auth", authRouter);
 
-
+// 4. INICIO DEL SERVIDOR
 app.listen(PORT, () => {
-    console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
+  console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
 });

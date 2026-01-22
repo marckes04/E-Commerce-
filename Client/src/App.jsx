@@ -13,19 +13,16 @@ import ShoppingAccount from "./pages/shopping View/account";
 import ShoppingCheckout from "./pages/shopping View/checkout";
 import CheckAuth from "./components/common/check-auth";
 import UnauthPage from "./pages/unauth-Page";
+import { useSelector } from "react-redux";
 
 
 function App() {
 
-  // ESTO ES TEMPORAL PARA PROBAR:
-  const isAuthenticated = false;
   
-  const user = null;// <--- Ahora mismo eres "Mario" y estás logueado
- /* const user = {
-    name: "Mario",
-    role: "admin" // <--- Y eres Admin
-  }; 
-*/
+
+
+  const {user,isAuthenticated} = useSelector((state) => state.auth);
+
   return (
     <div className="flex flex-col overflow-hidden bg-white">
       <Routes>

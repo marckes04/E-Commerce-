@@ -2,6 +2,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../../models/User');
 
+
+
 // Register user
 const registerUser = async (req, res) => {
     const { userName, email, password, role } = req.body;
@@ -42,28 +44,37 @@ const registerUser = async (req, res) => {
     }
 }
 
-// Login user
-const login = async (req, res) => {
 
-        const { email, password } = req.body;
+// Login user
+// controllers/auth/Auth-controller.js
+
+const loginUser = async (req, res) => { // Cambiado de 'login' a 'loginUser'
+    const { email, password } = req.body;
     try {
-        // We will add login logic late
         const checkUser = await User.findOne({ email });
-        if(!checkUser) return res.json({
+        if (!checkUser) return res.json({
             success: false,
             message: "User does not exist with this email, please register first.",
         });
-    
-    } catch (e) {
-        console.log(e);
-        res.status(500).json({
+
+        // IMPORTANTE: Aquí debes agregar la lógica de comparación de bcrypt que vimos antes
+        const checkPasswordMatch = await bcrypt.compare(password, checkUser.password);
+        if (!checkPasswordMatch) return res.json({
             success: false,
-            message: 'Some error occurred while logging in the user',
+            message: "Incorrect password!",
         });
+
+        // ... resto de tu lógica de token ...
+        res.status(200).json({ success: true, message: "Logged in", user: checkUser });
+
+    } catch (e) {
+        res.status(500).json({ success: false, message: 'Error' });
     }
 }
 
+module.exports = { registerUser, loginUser }; // Asegúrate de exportar loginUser
+
 module.exports = {
     registerUser,
-    login,
+    loginUser,
 }
