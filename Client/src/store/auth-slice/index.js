@@ -3,54 +3,43 @@ import axios from "axios";
 
 const initialState = {
   isAuthenticated: false,
-  isLoading: false,
+  isLoading: true,
   user: null,
 };
 
-// ASEGÚRATE DE QUE TENGA EL 'export' Y SE LLAME loginUser
-export const loginUser = createAsyncThunk(
-  "/auth/login",
-  async (formData, { rejectWithValue }) => {
-    try {
-      const response = await axios.post(
-        "http://localhost:5000/api/auth/login",
-        formData,
-        { withCredentials: true }
-      );
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data);
-    }
+// EXPORTACIONES NOMBRADAS (Soluciona SyntaxErrors)
+export const registerUser = createAsyncThunk(
+  "/auth/register",
+  async (formData) => {
+    const response = await axios.post(
+      "http://localhost:5000/api/auth/register",
+      formData,
+      { withCredentials: true }
+    );
+    return response.data;
   }
 );
 
-export const registerUser = createAsyncThunk(
-  "/auth/register",
-  async (formData, { rejectWithValue }) => {
-    try {
-      const response = await axios.post(
-        "http://localhost:5000/api/auth/register",
-        formData
-      );
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data);
-    }
+export const loginUser = createAsyncThunk(
+  "/auth/login",
+  async (formData) => {
+    const response = await axios.post(
+      "http://localhost:5000/api/auth/login",
+      formData,
+      { withCredentials: true }
+    );
+    return response.data;
   }
 );
 
 export const checkAuth = createAsyncThunk(
   "/auth/checkauth",
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await axios.get(
-        "http://localhost:5000/api/auth/check-auth",
-        { withCredentials: true }
-      );
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data);
-    }
+  async () => {
+    const response = await axios.get(
+      "http://localhost:5000/api/auth/check-auth",
+      { withCredentials: true }
+    );
+    return response.data;
   }
 );
 
@@ -58,32 +47,33 @@ const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    setUser: (state, action) => {
-      state.user = action.payload;
+    // Soluciona error en header.jsx (Imagen 5b5dbd)
+    clearUser: (state) => {
+      state.user = null;
+      state.isAuthenticated = false;
     },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(loginUser.pending, (state) => {
+      .addCase(checkAuth.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(loginUser.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.user = action.payload.success ? action.payload.user : null;
-        state.isAuthenticated = action.payload.success;
-      })
-      .addCase(loginUser.rejected, (state) => {
-        state.isLoading = false;
-        state.user = null;
-        state.isAuthenticated = false;
-      })
       .addCase(checkAuth.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.user = action.payload.success ? action.payload.user : null;
         state.isAuthenticated = action.payload.success;
+        state.user = action.payload.success ? action.payload.user : null;
+        state.isLoading = false;
+      })
+      .addCase(checkAuth.rejected, (state) => {
+        state.isAuthenticated = false;
+        state.user = null;
+        state.isLoading = false;
+      })
+      .addCase(loginUser.fulfilled, (state, action) => {
+        state.isAuthenticated = action.payload.success;
+        state.user = action.payload.success ? action.payload.user : null;
       });
   },
 });
 
-export const { setUser } = authSlice.actions;
-export default authSlice.reducer;
+export const { clearUser } = authSlice.actions;
+export default authSlice.reducer; // CRÍTICO: Exportación por defecto
