@@ -21,16 +21,16 @@ mongoose
 // 2. MIDDLEWARES
 app.use(
   cors({
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    origin: "http://localhost:5173", // URL de tu frontend
+    methods: ["GET", "POST", "DELETE", "PUT"],
     allowedHeaders: [
       "Content-Type",
       "Authorization",
-      "cache-control",
+      "Cache-Control",
       "Expires",
       "Pragma",
     ],
-    credentials: true,
+    credentials: true, // ESTO DEBE SER TRUE
   })
 );
 

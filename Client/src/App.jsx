@@ -1,4 +1,6 @@
 import { Route, Routes, Navigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+
 import AuthLayout from "./components/auth/layout";
 import AuthLogin from "./pages/auth/login";
 import AuthRegister from "./pages/auth/register";
@@ -6,22 +8,23 @@ import AdminLayout from "./components/adminView/layout";
 import AdminDashboard from "./pages/admin View/dashboard"; 
 
 import ShoppingLayout from "./pages/shopping View/layout";
-import NotFound from "./pages/Not-Found";
-import ShoppingHome from "./pages/shopping View/home";      
+import ShoppingHome from "./pages/shopping View/home";       
 import ShoppingListing from "./pages/shopping View/listing"; 
 import ShoppingAccount from "./pages/shopping View/account"; 
 import ShoppingCheckout from "./pages/shopping View/checkout";
+
 import CheckAuth from "./components/common/check-auth";
 import UnauthPage from "./pages/unauth-Page";
-import { useSelector } from "react-redux";
-
+import NotFound from "./pages/Not-Found";
 
 function App() {
+  // Sacamos el estado de auth. 
+  // IMPORTANTE: añadimos un valor por defecto para que no sea undefined
+  const { user, isAuthenticated, isLoading } = useSelector((state) => state.auth || {});
 
-  
-
-
-  const {user,isAuthenticated} = useSelector((state) => state.auth);
+  // Si el sistema está cargando la sesión, esperamos. 
+  // Esto evita que CheckAuth te rebote al login por error.
+  if (isLoading) return <div className="flex h-screen w-full items-center justify-center">Cargando...</div>;
 
   return (
     <div className="flex flex-col overflow-hidden bg-white">
@@ -44,11 +47,7 @@ function App() {
             <AdminLayout />
           </CheckAuth>
         }>
-          <Route index element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="dashboard" element={<AdminDashboard />} />
-          <Route path="products" element={<div>Productos</div>} />
-          <Route path="orders" element={<div>Ordenes</div>} />
-          <Route path="features" element={<div>Features</div>} />
         </Route>
 
         {/* Rutas Shop */}
@@ -63,11 +62,8 @@ function App() {
           <Route path="account" element={<ShoppingAccount />} />
         </Route>
         
-        {/* RUTA DE NO AUTORIZADO (Necesaria para que CheckAuth no rompa) */}
-        <Route path="/unauth-page" element={<div>You do not have permission to view this page</div>} />
-
+        <Route path="/unauth-page" element={<UnauthPage />} />
         <Route path="*" element={<NotFound />} />
-        <Route path="unauth-page" element={<UnauthPage/>}/>
       </Routes>
     </div>
   );
