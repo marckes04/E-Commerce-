@@ -1,26 +1,19 @@
-const bcrypt = require('bcryptjs'); 
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../../models/User');
 
-
-
-// Register user
 const registerUser = async (req, res) => {
     const { userName, email, password, role } = req.body;
-    
     try {
         const checkUser = await User.findOne({ email });
-        
-        // Si el usuario ya existe
         if (checkUser) {
-            return res.status(400).json({ // Cambiado a 400 para indicar error de cliente
+            return res.status(400).json({
                 success: false,
-                message: "User with this email already exists. Please try another.",
+                message: "User already exists!",
             });
         }
 
         const hashPassword = await bcrypt.hash(password, 12);
-        
         const newUser = new User({
             userName,
             email,
@@ -29,52 +22,55 @@ const registerUser = async (req, res) => {
         });
 
         await newUser.save();
-        
-        res.status(200).json({
-            success: true,
-            message: "User registered successfully!",
-        });
-
+        res.status(200).json({ success: true, message: "Registered successfully!" });
     } catch (e) {
-        console.log(e);
-        res.status(500).json({
-            success: false,
-            message: 'An error occurred during registration.',
-        });
+        res.status(500).json({ success: false, message: 'Error in registration' });
     }
-}
+};
 
-
-// Login user
-// controllers/auth/Auth-controller.js
-
-const loginUser = async (req, res) => { // Cambiado de 'login' a 'loginUser'
+const loginUser = async (req, res) => {
     const { email, password } = req.body;
     try {
         const checkUser = await User.findOne({ email });
-        if (!checkUser) return res.json({
-            success: false,
-            message: "User does not exist with this email, please register first.",
-        });
+        if (!checkUser) return res.json({ success: false, message: "User doesn't exist" });
 
-        // IMPORTANTE: Aquí debes agregar la lógica de comparación de bcrypt que vimos antes
         const checkPasswordMatch = await bcrypt.compare(password, checkUser.password);
-        if (!checkPasswordMatch) return res.json({
-            success: false,
-            message: "Incorrect password!",
+        if (!checkPasswordMatch) return res.json({ success: false, message: "Incorrect password!" });
+
+        const token = jwt.sign(
+            { id: checkUser._id, role: checkUser.role, email: checkUser.email, userName: checkUser.userName },
+            process.env.CLIENT_SECRET_KEY || 'CLIENT_SECRET_KEY',
+            { expiresIn: "60m" }
+        );
+
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: false, // Cambiar a true si usas HTTPS
+            sameSite: "Lax",
+            maxAge: 3600000 
+        }).status(200).json({
+            success: true,
+            message: "Logged in",
+            user: {
+                id: checkUser._id,
+                role: checkUser.role,
+                email: checkUser.email,
+                userName: checkUser.userName,
+            }
         });
-
-        // ... resto de tu lógica de token ...
-        res.status(200).json({ success: true, message: "Logged in", user: checkUser });
-
     } catch (e) {
         res.status(500).json({ success: false, message: 'Error' });
     }
-}
+};
 
-module.exports = { registerUser, loginUser }; // Asegúrate de exportar loginUser
+// ESTO ES LO QUE RESPONDE AL F5
+const checkAuth = async (req, res) => {
+    const user = req.user;
+    res.status(200).json({
+        success: true,
+        message: "Authenticated user!",
+        user,
+    });
+};
 
-module.exports = {
-    registerUser,
-    loginUser,
-}
+module.exports = { registerUser, loginUser, checkAuth };
