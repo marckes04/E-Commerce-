@@ -1,3 +1,5 @@
+import { Icon, icons, LayoutDashboard, ShoppingBasket } from "lucide-react"
+
 export const registerFormControls = [
     {
         name: "userName",
@@ -25,3 +27,4 @@ export const registerFormControls = [
         
     }
 ]
+
