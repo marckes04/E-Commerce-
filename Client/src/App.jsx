@@ -18,6 +18,7 @@ import ShoppingHome from "./pages/shopping-view/home";
 import CheckAuth from "./components/common/check-auth";
 import UnauthPage from "./pages/unauth-Page";
 import NotFound from "./pages/Not-Found";
+import AdminOrders from "./pages/admin-view/orders";
 
 function App() {
   const { user, isAuthenticated, isLoading } = useSelector((state) => state.auth);
@@ -53,6 +54,7 @@ function App() {
         <Route path="/admin" element={<CheckAuth isAuthenticated={isAuthenticated} user={user}><AdminLayout /></CheckAuth>}>
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="products" element={<AdminProducts />} />
+          <Route path="orders" element={<AdminOrders/>}/>
         </Route>
 
         {/* RUTAS DE LA TIENDA */}
