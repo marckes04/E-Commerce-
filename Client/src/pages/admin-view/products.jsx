@@ -7,8 +7,8 @@ import {
   SheetTitle 
 } from "../../components/ui/sheet"; 
 import CommonForm from "@/components/common/form";
+import ProductImageUpload from "@/components/admin-view/image-upload";
 
-// Mantenemos tus elementos del formulario igual
 const addFormProductFormElements = [
   { label: "Title", name: "title", componentType: "input", type: "text", placeholder: "Enter product title" },
   { label: "Description", name: "description", componentType: "textarea", placeholder: "Enter product description" },
@@ -51,6 +51,8 @@ const initialFormData = {
 function AdminProducts() {
   const [openCreateProductsDialog, setOpenCreateProductsDialog] = useState(false);
   const [formData, setFormData] = useState(initialFormData);
+  const [imageFile, setImageFile] = useState(null);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState('');
 
   function onSubmit(event) {
     event.preventDefault();
@@ -76,14 +78,21 @@ function AdminProducts() {
           setFormData(initialFormData);
         }}
       >
-        {/* CORRECCIÓN: sm:max-w-[450px] para que no sea muy angosto y p-6 para espacio interno */}
         <SheetContent side="right" className="overflow-auto bg-white sm:max-w-[450px] p-0">
           <SheetHeader className="border-b p-6">
             <SheetTitle>Add New Product</SheetTitle>
           </SheetHeader>
           
-          {/* Contenedor del formulario con padding lateral (px-8) para que no pegue a los bordes */}
+          {/* Componente de imagen intacto */}
+          <ProductImageUpload 
+            imageFile={imageFile} 
+            setImageFile={setImageFile} 
+            uploadedImageUrl={uploadedImageUrl} 
+            setUploadedImageUrl={setUploadedImageUrl}
+          />
+          
           <div className="py-6 px-8">
+            {/* Formulario intacto con todos sus elementos */}
             <CommonForm
               onSubmit={onSubmit}
               formData={formData}
