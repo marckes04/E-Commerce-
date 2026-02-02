@@ -1,86 +1,105 @@
-import { useEffect, useRef, useState } from "react"; 
+import { useEffect, useRef } from "react";
 import { Input } from "../ui/input";
-import { Label } from "../ui/label"; 
-import { FileIcon, UploadCloudIcon, XIcon } from "lucide-react"; // Opcional: un icono queda mejor
+import { Label } from "../ui/label";
+import { FileIcon, UploadCloudIcon, XIcon } from "lucide-react";
 import { Button } from "../ui/button";
+import axios from "axios";
 
 function ProductImageUpload({
-    imageFile,
-    setImageFile,
-    uploadedImageUrl, 
-    setUploadedImageUrl,
+  imageFile,
+  setImageFile,
+  imageLoadingState,
+  uploadedImageUrl,
+  setUploadedImageUrl,
+  setImageLoadingState,
 }) {
-    const inputRef = useRef(null);
+  const inputRef = useRef(null);
 
-    function handleImageFileChange(event) {
-        const selectedFile = event.target.files?.[0];
-        if (selectedFile) setImageFile(selectedFile);
+  function handleImageFileChange(event) {
+    const selectedFile = event.target.files?.[0];
+    if (selectedFile) setImageFile(selectedFile);
+  }
+
+  function handleRemoveImage() {
+    setImageFile(null);
+    if (inputRef.current) inputRef.current.value = "";
+  }
+
+  async function uploadImageToCloudinary() {
+    setImageLoadingState(true);
+    const data = new FormData();
+    data.append("my_file", imageFile);
+
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/admin/products/upload-image",
+        data
+      );
+
+      if (response?.data?.success) {
+        setUploadedImageUrl(response.data.result.url);
+        setImageLoadingState(false);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      setImageLoadingState(false); // Importante: liberar el estado aunque falle
     }
+  }
 
-    // Función para manejar el "Drag & Drop" (arrastrar archivos)
-    function handleDragOver(event) {
-        event.preventDefault();
-    }
+  useEffect(() => {
+    if (imageFile !== null) uploadImageToCloudinary();
+  }, [imageFile]);
 
-    function handleDrop(event) {
-        event.preventDefault();
-        const droppedFile = event.dataTransfer.files?.[0];
-        if (droppedFile) setImageFile(droppedFile);
-    }
-
-    function handleRemoveImage()
-    {
-        setImageFile(null)
-        if(inputRef.current)
-        {
-            inputRef.current.value = "";
-        }
-    }
-
-    return (  
-        <div className="w-full max-w-md mx-auto p-4">
-            <Label className="text-lg font-semibold mb-2 block">
-                Upload Image
-            </Label>
-            <div 
-                onDragOver={handleDragOver} 
-                onDrop={handleDrop} 
-                className="border-2 border-dashed rounded-lg p-4"
-            >
-                <Input 
-                    id="image-upload" 
-                    type="file" 
-                    className="hidden" 
-                    ref={inputRef}
-                    onChange={handleImageFileChange}
-                />
-                <div 
-                    onClick={() => inputRef.current.click()} 
-                    className="cursor-pointer flex flex-col items-center justify-center h-32 hover:bg-gray-50 transition-all"
-                >
-                    {
-                        !imageFile ? (
-                            <div className="flex flex-col items-center">
-                                <UploadCloudIcon className="w-10 h-10 text-muted-foreground mb-2" />
-                                <span className="text-muted-foreground">Click or drag to upload image</span>
-                            </div>
-                        ) : (
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center">
-                                    <FileIcon className="w-8 text-primary mr-2 h-8"/>
-                                </div>
-                                <p className="text-sm font-medium">{imageFile.name}</p>
-                                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" onClick={handleRemoveImage}>
-                                    <XIcon className="w-4 h-4"/>
-                                    <span className="sr-only">Remove File</span>
-                                </Button>
-                            </div>
-                        )
-                    }
-                </div>
+  return (
+    <div className="w-full max-w-md mx-auto p-4">
+      <Label className="text-lg font-semibold mb-2 block">Upload Image</Label>
+      <div
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => {
+          e.preventDefault();
+          const file = e.dataTransfer.files?.[0];
+          if (file) setImageFile(file);
+        }}
+        className="border-2 border-dashed rounded-lg p-4"
+      >
+        <Input
+          id="image-upload"
+          type="file"
+          className="hidden"
+          ref={inputRef}
+          onChange={handleImageFileChange}
+        />
+        {!imageFile ? (
+          <div
+            onClick={() => inputRef.current.click()}
+            className="cursor-pointer flex flex-col items-center justify-center h-32 hover:bg-gray-50"
+          >
+            <UploadCloudIcon className="w-10 h-10 text-muted-foreground mb-2" />
+            <span>Click or drag to upload image</span>
+          </div>
+        ) : imageLoadingState ? (
+          /* SOLUCIÓN AL ERROR DE SKELETON: Usamos un div con parpadeo */
+          <div className="h-12 w-full bg-gray-200 animate-pulse rounded-md" />
+        ) : (
+          /* ESTO ES LO QUE BUSCABAS: Muestra el nombre del archivo */
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <FileIcon className="w-8 h-8 text-primary mr-2" />
+              <p className="text-sm font-medium">{imageFile.name}</p>
             </div>
-        </div>
-    );
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-muted-foreground hover:text-red-600"
+              onClick={handleRemoveImage}
+            >
+              <XIcon className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default ProductImageUpload;
