@@ -3,15 +3,18 @@ const Product = require("../../models/Product");
 
 const handleImageUpload = async (req, res) => {
   try {
+    // Verificamos que Multer haya procesado el archivo
     if (!req.file) {
-      return res.json({
+      return res.status(400).json({
         success: false,
         message: "No file uploaded",
       });
     }
 
+    // Convertimos el Buffer a string base64 para que Cloudinary lo procese
     const b64 = Buffer.from(req.file.buffer).toString("base64");
     const url = "data:" + req.file.mimetype + ";base64," + b64;
+    
     const result = await ImageUploadUtil(url);
 
     res.json({
@@ -19,7 +22,7 @@ const handleImageUpload = async (req, res) => {
       result,
     });
   } catch (error) {
-    console.log(error);
+    console.error("Error en handleImageUpload:", error);
     res.status(500).json({
       success: false,
       message: "Error occurred during upload",
@@ -27,7 +30,6 @@ const handleImageUpload = async (req, res) => {
   }
 };
 
-// Add a new product
 const addProduct = async (req, res) => {
   try {
     const {
@@ -41,35 +43,33 @@ const addProduct = async (req, res) => {
       totalStock,
     } = req.body;
 
-    // CORRECCIÓN: Eliminamos el "= req.body" al final de la instanciación
+    // Instanciamos el modelo con los datos del body
     const newlyCreatedProduct = new Product({
       image,
       title,
       description,
       category,
       brand,
-      price,
-      salePrice,
-      totalStock,
+      price: Number(price),
+      salePrice: salePrice === "" ? 0 : Number(salePrice),
+      totalStock: Number(totalStock),
     });
 
     await newlyCreatedProduct.save();
     
-    // CORRECCIÓN: Era res.status(201).json(...), no res.json(201).json(...)
     res.status(201).json({
       success: true,
       data: newlyCreatedProduct,
     });
   } catch (e) {
-    console.log(e);
+    console.error("Error en addProduct:", e);
     res.status(500).json({
       success: false,
-      message: "Error occurred",
+      message: "Error occurred while adding product",
     });
   }
 };
 
-// fetch all products
 const fetchAllProducts = async (req, res) => {
   try {
     const listOfProducts = await Product.find({});
@@ -78,6 +78,7 @@ const fetchAllProducts = async (req, res) => {
       data: listOfProducts,
     });
   } catch (e) {
+    console.error("Error en fetchAllProducts:", e);
     res.status(500).json({
       success: false,
       message: "Error occurred",
@@ -85,7 +86,6 @@ const fetchAllProducts = async (req, res) => {
   }
 };
 
-// edit a product
 const editProduct = async (req, res) => {
   try {
     const { id } = req.params;
@@ -104,16 +104,16 @@ const editProduct = async (req, res) => {
     if (!findProduct)
       return res.status(404).json({
         success: false,
-        message: "product not found",
+        message: "Product not found",
       });
 
     findProduct.title = title || findProduct.title;
     findProduct.description = description || findProduct.description;
     findProduct.category = category || findProduct.category;
     findProduct.brand = brand || findProduct.brand;
-    findProduct.price = price === "" ? 0 : price || findProduct.price;
-    findProduct.salePrice = salePrice === "" ? 0 : salePrice || findProduct.salePrice;
-    findProduct.totalStock = totalStock || findProduct.totalStock;
+    findProduct.price = price === "" ? 0 : Number(price) || findProduct.price;
+    findProduct.salePrice = salePrice === "" ? 0 : Number(salePrice) || findProduct.salePrice;
+    findProduct.totalStock = Number(totalStock) || findProduct.totalStock;
     findProduct.image = image || findProduct.image;
 
     await findProduct.save();
@@ -122,6 +122,7 @@ const editProduct = async (req, res) => {
       data: findProduct,
     });
   } catch (e) {
+    console.error("Error en editProduct:", e);
     res.status(500).json({
       success: false,
       message: "Error occurred",
@@ -129,11 +130,9 @@ const editProduct = async (req, res) => {
   }
 };
 
-//delete a product
 const deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    // CORRECCIÓN: Para borrar se usa findByIdAndDelete
     const product = await Product.findByIdAndDelete(id);
 
     if (!product)
@@ -144,9 +143,10 @@ const deleteProduct = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Product delete success",
+      message: "Product deleted successfully",
     });
   } catch (e) {
+    console.error("Error en deleteProduct:", e);
     res.status(500).json({
       success: false,
       message: "Error occurred",

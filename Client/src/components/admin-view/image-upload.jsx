@@ -28,7 +28,9 @@ function ProductImageUpload({
   async function uploadImageToCloudinary() {
     setImageLoadingState(true);
     const data = new FormData();
-    data.append("my_file", imageFile);
+    
+    // CORRECCIÓN CLAVE: El nombre debe ser "image" para que coincida con upload.single("image")
+    data.append("image", imageFile);
 
     try {
       const response = await axios.post(
@@ -37,12 +39,13 @@ function ProductImageUpload({
       );
 
       if (response?.data?.success) {
-        setUploadedImageUrl(response.data.result.url);
+        // Guardamos la URL segura que nos da Cloudinary
+        setUploadedImageUrl(response.data.result.secure_url);
         setImageLoadingState(false);
       }
     } catch (error) {
-      console.error("Error:", error);
-      setImageLoadingState(false); // Importante: liberar el estado aunque falle
+      console.error("Error detallado en Axios:", error.response?.data || error.message);
+      setImageLoadingState(false);
     }
   }
 
@@ -78,10 +81,10 @@ function ProductImageUpload({
             <span>Click or drag to upload image</span>
           </div>
         ) : imageLoadingState ? (
-          /* SOLUCIÓN AL ERROR DE SKELETON: Usamos un div con parpadeo */
-          <div className="h-12 w-full bg-gray-200 animate-pulse rounded-md" />
+          <div className="h-12 w-full bg-gray-200 animate-pulse rounded-md flex items-center justify-center">
+             <span className="text-sm text-gray-500">Uploading...</span>
+          </div>
         ) : (
-          /* ESTO ES LO QUE BUSCABAS: Muestra el nombre del archivo */
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <FileIcon className="w-8 h-8 text-primary mr-2" />
